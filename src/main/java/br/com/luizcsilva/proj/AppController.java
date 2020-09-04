@@ -1,5 +1,6 @@
 package br.com.luizcsilva.proj;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,26 +11,19 @@ import java.util.List;
 @RestController
 public class AppController {
 
-    private static List < Product > productList = new ArrayList < > ();
-    static {
-        productList.add(new Product(1, "product-1", 12.0));
-        productList.add(new Product(2, "product-2", 34.0));
-        productList.add(new Product(3, "product-3", 9.0));
+    private static List < Product > productList = new ArrayList <> ();
+
+    @PostMapping("/product/")
+    public ResponseEntity setProduct(@RequestBody Product product) {
+        if (findProduct(product.getId()) == null) {
+            productList.add(product);
+            return ResponseEntity.ok(productList);
+        }
+        return ResponseEntity.badRequest().body("This product id already exists");
     }
 
-    @GetMapping("/products")
-    public ResponseEntity getProducts() {
-        return ResponseEntity.ok(productList);
-    }
-
-    @PostMapping("/product/{id}")
-    public ResponseEntity setProducts(@PathVariable int id) {
-        productList.add(new Product(id, "product-x", 12.0));
-        return ResponseEntity.ok(productList);
-    }
-
-    @GetMapping("/product/{id}")
-    public ResponseEntity getProducts(@PathVariable int id) {
+    @GetMapping(value = "/product/{id}" )
+    public ResponseEntity getProducts(@PathVariable(value = "id") int id) {
 
         Product product = findProduct(id);
         if (product == null) {
@@ -38,7 +32,6 @@ public class AppController {
         }
 
         return ResponseEntity.ok(product);
-
     }
 
     private Product findProduct(int id) {
@@ -47,6 +40,11 @@ public class AppController {
                         .equals(id))
                 .findFirst()
                 .orElse(null);
+    }
+
+    @GetMapping("/products")
+    public ResponseEntity <List<Product>> getProducts() {
+        return ResponseEntity.ok(productList);
     }
 
 }
